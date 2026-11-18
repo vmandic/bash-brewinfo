@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Run brewinfo with bash. Shell users can source share/brewinfo.bash
+# or share/brewinfo.zsh instead, and call the brewinfo function.
+
+set -eu
+
+_src=$0
+_hops=0
+while [ -L "$_src" ]; do
+  _hops=$((_hops + 1))
+  if [ "$_hops" -gt 8 ]; then
+    printf '%s\n' 'brewinfo: symlink loop' >&2
+    exit 1
+  fi
+  _link=$(readlink "$_src") || exit 1
+  case $_link in
+    /*) _src=$_link ;;
+    *) _src=$(dirname -- "$_src")/$_link ;;
+  esac
+done
+
+_root=$(CDPATH= cd -- "$(dirname -- "$_src")/.." && pwd)
+# shellcheck disable=SC1091
+. "$_root/share/brewinfo.bash"
+brewinfo
